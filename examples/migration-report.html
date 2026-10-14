@@ -1,0 +1,103 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="../report-kit.js"></script>
+
+<!-- v1: initial plan. Each later <script class="rk-v"> is appended, never edited. -->
+<script type="application/json" class="rk-v">
+{"title":"Log stack migration — Loki → VictoriaLogs","date":"Sep 22","note":"Initial plan","lang":"en",
+ "sum":"Migration planned. 12 services to move, target **60%+** storage reduction.",
+ "meta":["Sample data","report-kit"],
+ "blocks":[
+  {"id":"kpi","kpi":[["Services migrated","0/12","info","not started","server"],["Storage","410 GB","warn","Loki","hard-drive"],["Query p95","3.1 s","bad","slow","zap"]]},
+  {"id":"arch","flow":"flowchart LR\n  A[Apps] -->|stdout| B[Vector]\n  B -->|HTTP| C[(VictoriaLogs)]\n  C --> D[Grafana]\n  C --> E[Logs API]\n  E --> F[AI assistant]","title":"Target architecture"},
+  {"id":"todo","todo":["Unify Vector config","Migrate services","Port alert rules to LogsQL","Shut down Loki cluster"],"title":"To-do"},
+  {"id":"decide","ask":[
+    {"id":"ret","q":"How long should logs be retained?","opt":["7 days","30 days","90 days"]},
+    {"id":"shutdown","q":"When should Loki be shut down?","opt":["Immediately","After 1 week read-only","After 1 month read-only"]},
+    {"id":"first","q":"Which services go first?","opt":["api","worker","web","cron"],"multi":true},
+    {"id":"note","q":"Anything else?","ph":"e.g. keep legacy-sync on Loki for now"}],"title":"Decisions needed"}
+ ]}
+</script>
+
+<!-- v2: progress update. {"ref":"arch"} reuses the v1 block instead of repeating it. -->
+<script type="application/json" class="rk-v">
+{"date":"Oct 6","note":"Dual-write live, api migrated",
+ "sum":"Dual-write is live. **api** migrated, storage starts dropping.",
+ "blocks":[
+  {"id":"kpi","kpi":[["Services migrated","4/12","info","api, worker, web, cron","server"],["Storage","-38%","good","410 GB → 255 GB","hard-drive"],["Query p95","0.6 s","good","was 3.1 s","zap"]]},
+  {"ref":"arch"},
+  {"id":"prog","progress":[["Service migration",4,12],["Dashboards ported",2,10],["Alert rules",10,100,"warn"]],"title":"Progress"},
+  {"id":"todo","todo":[["Unify Vector config",true],"Migrate services","Port alert rules to LogsQL","Shut down Loki cluster"],"title":"To-do"}
+ ]}
+</script>
+
+<!-- v3: final report, every block type. -->
+<script type="application/json" class="rk-v">
+{"date":"Oct 14","note":"Migration complete",
+ "sum":"Migration **complete**: 12 services moved, storage down 71%. **2 risks** open.",
+ "blocks":[
+  {"id":"kpi","kpi":[["Services migrated","12/12","good","all live","server"],["Storage","-71%","good","410 GB → 118 GB","hard-drive"],["Query p95","0.4 s","info","was 3.1 s","zap"],["Open risks",2,"warn","1 high","triangle-alert"]]},
+  {"callout":"The old Loki cluster stays read-only until **Oct 20**, then it is shut down. See the [VictoriaLogs docs](https://docs.victoriametrics.com/victorialogs/).","tone":"warn"},
+
+  {"h":"Before / after","icon":"git-compare"},
+  {"diff":{"before":{"Storage (GB)":410,"Monthly cost ($)":620,"Query p95 (ms)":3100,"Config lines":4200,"Dependencies":9},
+           "after":{"Storage (GB)":118,"Monthly cost ($)":190,"Query p95 (ms)":400,"Config lines":1300,"Dependencies":3}},"good":"down","title":"Metrics","src":"`du -sh /data/*` and billing console, Oct 14"},
+
+  {"h":"Charts","icon":"chart-column"},
+  {"cols":[
+    {"chart":"bar","title":"Errors per day","x":["Mon","Tue","Wed","Thu","Fri"],"y":{"Before":[40,38,41,36,44],"After":[7,5,6,4,3]}},
+    {"chart":"area","title":"Disk usage (GB)","x":["W1","W2","W3","W4","W5","W6"],"y":{"Loki":[300,330,360,385,410,410],"VictoriaLogs":[0,20,55,90,110,118]}}
+  ]},
+  {"tabs":{
+    "Breakdown":[{"cols":[
+      {"chart":"doughnut","title":"Log volume","x":["api","worker","web","cron","other"],"y":[46,22,18,9,5]},
+      {"chart":"hbar","title":"p95 per service (ms)","x":["api","worker","web","cron"],"y":{"p95":[420,380,310,150]}}]}],
+    "Scorecard":[{"chart":"radar","title":"Loki vs VictoriaLogs","x":["Speed","Cost","Maintenance","Query language","Scale"],"y":{"Loki":[2,2,3,3,4],"VictoriaLogs":[5,5,4,4,4]}}],
+    "By level":[{"chart":"stacked","title":"Logs by level (million lines)","height":240,"x":["Wk 1","Wk 2","Wk 3","Wk 4"],"y":{"info":[120,118,125,130],"warn":[14,12,9,8],"error":[3,2.4,1.1,0.8]}}]
+  },"title":"More charts"},
+
+  {"h":"Architecture","icon":"workflow"},
+  {"cols":[
+    {"ref":"arch"},
+    {"flow":"sequenceDiagram\n  participant S as Service\n  participant V as Vector\n  participant L as VictoriaLogs\n  S->>V: JSON log\n  V->>V: parse + label\n  V->>L: batch insert\n  L-->>V: 204","title":"Write path"}
+  ]},
+  {"flow":"gantt\n  dateFormat YYYY-MM-DD\n  section Migration\n  Setup :done, a1, 2026-09-22, 5d\n  Dual-write :done, a2, after a1, 7d\n  Service moves :done, a3, after a2, 8d\n  Loki shutdown :active, a4, 2026-10-14, 6d","title":"Plan"},
+
+  {"h":"Status","icon":"list"},
+  {"id":"prog","progress":[["Service migration",12,12,"good"],["Dashboards ported",7,10],["Alert rules",40,100,"warn"],["Documentation",85]],"title":"Progress"},
+  {"table":[["Service","Env","Lines / day","Status","Note"],
+            ["api","prod",18400000,"ok","Vector sidecar"],
+            ["worker","prod",8700000,"ok","—"],
+            ["web","prod",7100000,"ok","`nginx` access log included"],
+            ["cron","prod",3500000,"pending","no retention set"],
+            ["mailer","prod",1200000,"ok","—"],
+            ["legacy-sync","prod",0,"error","<img src=x onerror=alert(1)> — rendered as text, never as HTML"]],"title":"Services","total":true,"src":"VictoriaLogs `stats by (app) count()`, last 24 h"},
+  {"cols":[
+    {"timeline":[["Sep 22","VictoriaLogs installed","good"],["Sep 29","Dual-write started"],["Oct 6","**api** migrated","good"],["Oct 10","cron retention issue","warn"],["Oct 14","Loki read-only","info"]],"title":"Timeline"},
+    {"risk":[["No retention on cron, disk can fill up","high"],["60% of alert rules not ported yet","med"],["Grafana panel queries were rewritten by hand","low"]],"title":"Risks"},
+    {"id":"todo","todo":[["Unify Vector config",true],["Migrate services",true],"Set cron retention to 30 days","Port alert rules to LogsQL","Shut down Loki cluster (Oct 20)"],"title":"To-do"}
+  ]},
+
+  {"h":"Copy, review, decide","icon":"mouse-pointer-click"},
+  {"cols":[
+    {"copy":"kubectl -n logs patch cm vlogs --patch '{\"data\":{\"retentionPeriod\":\"30d\"}}'","lang":"bash","text":"Command that closes the cron risk:","title":"Command"},
+    {"copy":"Hi team, logging has moved to VictoriaLogs. Loki shuts down on Oct 20 — if you still rely on an old dashboard, tell us before then.","text":"Announcement for the team:","title":"Ready-made message"}
+  ]},
+  {"code":"@@ vector.toml @@\n [sinks.out]\n-type = \"loki\"\n-endpoint = \"http://loki:3100\"\n-labels.app = \"{{ app }}\"\n+type = \"http\"\n+uri = \"http://vlogs:9428/insert/jsonline?_stream_fields=app\"\n+encoding.codec = \"json\"","lang":"diff","title":"vector.toml"},
+  {"review":[["r1","Shut down the Loki cluster on **Oct 20**"],["r2","Set cron retention to **30 days**"],["r3","Port alert rules to LogsQL this week"],["r4","Retire legacy-sync without migrating it"]],"title":"Needs your approval"},
+  {"ref":"decide"},
+
+  {"h":"Evidence","icon":"badge-check"},
+  {"img":{"before":"img/before.svg","after":"img/after.svg"},"labels":["Loki","VictoriaLogs"],"cap":"Same dashboard before and after the migration. Drag to compare.","title":"Dashboard comparison"},
+  {"table":[{"Item":"Disk","Before ($)":410,"After ($)":118},{"Item":"Compute","Before ($)":150,"After ($)":52},{"Item":"Backups","Before ($)":60,"After ($)":20}],"total":true,"title":"Monthly cost items"},
+  {"sources":[["Storage and disk figures","cmd","du -sh /data/loki /data/vlogs"],["Per-service line counts","db","VictoriaLogs: * | stats by (app) count()"],["Migration plan","file","docs/logging-migration-plan.md"],["VictoriaLogs documentation","link","https://docs.victoriametrics.com/victorialogs/"]],"title":"Sources"},
+  {"faq":[
+    ["What happens to old logs?","The last 30 days were copied to VictoriaLogs. Older logs stay readable in Loki until **Oct 20**."],
+    ["Did the query language change?","Yes: **LogsQL** instead of LogQL. Example: `_stream:{app=\"api\"} level:error`"],
+    ["Do Grafana dashboards still work?","7 of 10 are ported; the remaining 3 land this week."],
+    ["Why did cost drop?","Better compression and no label-cardinality blowups; disk went from 410 GB to 118 GB."],
+    ["What if an alert does not fire?","60% of alert rules are not ported yet; check critical services through the logs API meanwhile."]],"title":"FAQ"},
+  {"details":"Technical appendix","blocks":[
+    {"code":"_stream:{app=\"api\"} level:error | stats by (_time:1h) count()","title":"Sample LogsQL"}
+  ]}
+ ]}
+</script>

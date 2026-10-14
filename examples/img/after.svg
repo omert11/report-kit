@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360" viewBox="0 0 800 360" font-family="system-ui,sans-serif">
+<rect width="800" height="360" fill="#f0fdf4"/><rect width="800" height="48" fill="#14532d"/>
+<text x="24" y="31" fill="#fff" font-size="18" font-weight="700">VictoriaLogs — log dashboard</text>
+<text x="600" y="31" fill="#bbf7d0" font-size="14">p95: 0.4 s</text>
+<g fill="#22c55e"><rect x="40" y="280" width="60" height="40"/><rect x="130" y="290" width="60" height="30"/><rect x="220" y="285" width="60" height="35"/><rect x="310" y="295" width="60" height="25"/><rect x="400" y="300" width="60" height="20"/></g>
+<rect x="500" y="80" width="260" height="240" rx="10" fill="#fff" stroke="#86efac"/>
+<text x="520" y="120" font-size="16" fill="#14532d" font-weight="700">Disk: 118 GB</text>
+<text x="520" y="150" font-size="14" fill="#166534">Errors/day: 3</text><text x="520" y="180" font-size="14" fill="#166534">Cost: $190/mo</text>
+<text x="520" y="290" font-size="13" fill="#15803d">✓ fast queries</text></svg>

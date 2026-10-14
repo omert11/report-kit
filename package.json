@@ -1,0 +1,14 @@
+{
+  "name": "report-kit",
+  "version": "0.3.0",
+  "description": "Turn a small JSON spec into a single-file, interactive, versioned HTML report. Built for AI assistants.",
+  "main": "report-kit.js",
+  "bin": { "rk-check": "bin/rk-check.js" },
+  "files": ["report-kit.js", "bin/", "SCHEMA.md"],
+  "scripts": { "check": "node bin/rk-check.js examples/*.html" },
+  "keywords": ["report", "json", "html", "ai", "llm", "charts", "mermaid", "dashboard"],
+  "repository": { "type": "git", "url": "git+https://github.com/omert11/report-kit.git" },
+  "homepage": "https://github.com/omert11/report-kit#readme",
+  "license": "MIT",
+  "engines": { "node": ">=16" }
+}

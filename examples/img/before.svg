@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360" viewBox="0 0 800 360" font-family="system-ui,sans-serif">
+<rect width="800" height="360" fill="#fff5f5"/><rect width="800" height="48" fill="#7f1d1d"/>
+<text x="24" y="31" fill="#fff" font-size="18" font-weight="700">Loki — log dashboard</text>
+<text x="600" y="31" fill="#fecaca" font-size="14">p95: 3.1 s</text>
+<g fill="#ef4444"><rect x="40" y="140" width="60" height="180"/><rect x="130" y="150" width="60" height="170"/><rect x="220" y="130" width="60" height="190"/><rect x="310" y="160" width="60" height="160"/><rect x="400" y="110" width="60" height="210"/></g>
+<rect x="500" y="80" width="260" height="240" rx="10" fill="#fff" stroke="#fca5a5"/>
+<text x="520" y="120" font-size="16" fill="#7f1d1d" font-weight="700">Disk: 410 GB</text>
+<text x="520" y="150" font-size="14" fill="#991b1b">Errors/day: 40</text><text x="520" y="180" font-size="14" fill="#991b1b">Cost: $620/mo</text>
+<text x="520" y="290" font-size="13" fill="#b91c1c">⚠ slow queries</text></svg>
